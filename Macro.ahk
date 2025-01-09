@@ -2,6 +2,7 @@
 ; raynnpjl for contributing the card selector
 ; yuh for heavily inspiring  the macro + some functions
 ; taxi for the base macro
+; invalid (i wanted to get included)
 
 #Requires AutoHotkey v2.0
 #Include %A_ScriptDir%\Lib\gui.ahk
@@ -35,6 +36,7 @@ LoadingScreen := "|<>*98$87.zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzwTzzzzzzzzzzzzX3z
 P := "|<>*88$35.3zzzy0Tzzzy0zzzzy3zzzzw7zzzzsTzzzzszzzzzlzzzzzXzw1zz7zs1zyDzk1zwTzV3zszz73zlzyC7zXzwQTz7zs0zyDzk3zwTzVzzszz7zzlzyDzzXzwTzz7zzzzyDzzzzwTzzzzszzzzzkzzzzzVzzzzy1zzzzw3zzzzk3zzzz00zzzs0000000000004"
 P2 := "|<>*102$165.1zzzs000Dzzz0003zzzk000zzzw0zzzzk007zzzy001zzzzU00TzzzsDzzzz001zzzzs00Tzzzy007zzzzXzzzzw00TzzzzU07zzzzs01zzzzyTzzzzU03zzzzw00zzzzz00Dzzzzrzzzzy00zzzzzk0Dzzzzw03zzzzzzzzzzk07zw3zy01zzzzzU0Tzzzzzzzzzy00zy07zk0Dzzzzw03zlyDzzzzzzk07zU0Ty01zzzzzU0Ts30Tzzzzzy00zs01zk0Dzzzzw03y001zzz0zzk07y0k7y01zzzzzU0TU007zzvzzy00zU60Tk0Dzzzzw03w000zzzTzzk07w003y01zzzzTU0TU007zzvzzy00z000Dk0Dzzzzw03w000zzzzzzk07s0k1y01zzzzzU0TU007zzzzzy00z060Dk0Dzzzzw03y001zzzzzzk07s0k1y01zzzzzU0Tk00Dzzzzzy00z060Dk0Dzzzzw03z003zzzzzzk07s0k1y01zzzzzU0Tw00zzzzzzy00zU60Tk0Dzzzzw03zk0Dzzzzzzk07w0k3y01zzzzzU0Tz03zzzzzzy00zk60zk0Dzzzzw03zw0zzzzzzzk07z00Dy01zzzzzU0TzkDzzzzzzy00zw03zk0Dzzzzw03zzbzzzzzzzk07zk0zy01zzzzzU0Tzzzzzzzzzy00zzkzzk0Dzzzzw03zzzzzzzzzzk07zzzzy01zzzzzU0Tzzzzvzzzzw00TzzzzU07zzzzs01zzzzyTzzzzU03zzzzw00zzzzz00Dzzzzlzzzzs00Dzzzz003zzzzk00zzzzw7zzzy000zzzzk00Dzzzw003zzzz0Dzzz0001zzzs000Tzzy0007zzzUU"
 Priority := "|<>*92$70.zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzs0000000000T00000000000s00000000001U0000000000600000000000M007zs000001U01zwU07U0060060200m000M00E1DvuA001U017zysss0060043W110U00M00E68442001U010MXkss006004TWD1X000M00Fu8x2C001U0168XUQ8006006En/1kU00M00D1zbxy001U0000870U00600000000000M00000000001k0000000000DU0000000001zzzzzzzzzzzzU"
+DeathText := "|<>*100$22.zzzzUzUw3w3l7l6ASAMtstXbXaASAQFgFkAEDUlUzzzzU"
 
 CheckForUpdates()
 
@@ -43,6 +45,9 @@ global cardPickerEnabled := 1
 global hasReconnect := 0
 global matchModeEnabled := 1
 global backToLobbyEnabled := 1
+global loss := 0
+global wins := 0
+global hasSecretDetector := false ; not added in this version yet (in beta)
 
 SetupMacro() {
     if ControlGetVisible(keybindsGui) {
@@ -187,7 +192,7 @@ PlaceUnit(x, y, slot := 1) {
 
 IsPlacementSuccessful() {
 
-    Sleep 3000
+    Sleep 2300
     if (ok := FindText(&X, &Y, 78, 182, 400, 451, 0, 0, UnitExistence)) {
         AddToLog("placed unit successfully")
         BetterClick(329, 184) ; close upg menu
@@ -742,6 +747,9 @@ UpgradeUnit(x, y) {
     BetterClick(264, 363) ; upgrade
     BetterClick(264, 363) ; upgrade
     BetterClick(264, 363) ; upgrade
+    BetterClick(264, 363) ; upgrade
+    BetterClick(264, 363) ; upgrade
+    BetterClick(264, 363) ; upgrade
 }
 
 IsMaxUpgrade() {
@@ -753,12 +761,22 @@ IsMaxUpgrade() {
 }
 
 ShouldStopUpgrading(sleepamount := 300) {
+    global loss
+    global wins
     Sleep sleepamount
     if CheckForLobbyButton() {
         if (WebhookCheckbox.Value = 1) {
-            SendInput ("{Tab}")
-            Sleep 100
-            SendWebhook()
+            if Checkforloss() {
+                loss++
+                SendInput ("{Tab}")
+                Sleep 100
+                LossWebhook()
+            } else if !Checkforloss() {
+                wins++
+                SendInput ("{Tab}")
+                Sleep 100
+                sendWebhook()
+            }
         }
 
         ; Check the state of the Back To Lobby checkbox
@@ -911,6 +929,14 @@ CheckForLobbyButton() {
     {
         return true
     }
+}
+
+Checkforloss(){
+    if (ok:=FindText(&X, &Y, 412-150000, 109-150000, 412+150000, 109+150000, 0, 0, DeathText))
+    {
+        return true
+    }
+    return false
 }
 
 SendChat() {
@@ -1079,9 +1105,7 @@ OnSpawnSetup() {
             break
         }
     }
-    Sleep 4000
-    BetterClick(590, 15) ; click on P
-    Sleep 1000
+    Sleep 8000 ; dont do that sh again bro - invalid
     TapToMove(false)
 
 }
@@ -1132,15 +1156,16 @@ HoldKey(key, duration) {
 cardSelector() {
     AddToLog("Picking card in priority order")
     if (ok := FindText(&X, &Y, 78, 182, 400, 451, 0, 0, UnitExistence)) {
-        BetterClick(329, 184) ; close upg menu
+        BetterClick(329, 184) ; Close upgrade menu
         sleep 100
     }
 
     BetterClick(59, 572) ; Untarget Mouse
     sleep 500
 
-    for index, priority in priorityOrder {
+    for priority in priorityOrder { ; Strictly follow the order in priorityOrder
         if (!textCards.Has(priority)) {
+            AddToLog(Format("Card {} not available in textCards", priority))
             continue
         }
         if (ok := FindText(&cardX, &cardY, 209, 203, 652, 404, 0, 0, textCards.Get(priority))) {
@@ -1155,8 +1180,9 @@ cardSelector() {
             return
         }
     }
-    AddToLog("Failed to pick a card")
+    AddToLog("Failed to pick a card. No matching cards found in priority order.")
 }
+
 
 ;Added by @raynnpjl
 cardSelectorBackup() {
