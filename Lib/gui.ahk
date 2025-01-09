@@ -167,15 +167,15 @@ SaveConfigBttn := MainGUI.Add("Button", "x960 y270 w95 h30 cffffff +Center", "Sa
 SaveConfigBttn.OnEvent("Click", (*) => SaveConfig())
 
 
-MainGUI.Add("GroupBox", "x830 y320 w238 h210 cfffd90 ", "Activity Log ")
+MainGUI.Add("GroupBox", "x830 y320 w238 h210 cab00fa ", "Activity Log ")
 ActivityLog := MainGUI.Add("Text", "x830 y340 w238 h300 r11 cffffff +BackgroundTrans +Center", "Macro Launched")
 
-MainGUI.Add("GroupBox", "x830 y540 w238 h80 cfffd90 ", "Keybinds")
+MainGUI.Add("GroupBox", "x830 y540 w238 h80 cab00fa ", "Keybinds")
 KeyBinds := MainGUI.Add("Text", "x830 y560 w238 h300 r7 cffffff +BackgroundTrans +Center", "F1 - Fix Roblox Position `n F2 - Start Macro `n F3 - Stop Macro")
 
 MainGUI.SetFont("s16 bold", "Segoe UI")
 
-MainGUI.Add("Text", "x12 y632 w800 cWhite +BackgroundTrans", "v1.1.6-8 - Taxi Macro")
+MainGUI.Add("Text", "x12 y632 w800 cab00fa +BackgroundTrans", "Taxi Macro")
 
 MainGUI.Show("x27 y15 w1100 h665")
 

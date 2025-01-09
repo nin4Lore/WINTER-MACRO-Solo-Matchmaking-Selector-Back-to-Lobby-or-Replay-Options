@@ -6,7 +6,7 @@ PriorityCardSelector.MarginY := 20
 
 PriorityOrder := PriorityCardSelector.Add("GroupBox", "x20 y30 w180 h400 cWhite", "Modifier Priority Order")
 
-options := ["new_path", "range", "attack", "health", "shield", "regen", "explosive_death", "cooldown", "speed", "yen"]
+options := ["new_path", "range", "attack", "shield", "regen", "cooldown", "explosive_death", "yen", "speed", "health"]
 
 numDropDowns := 10
 yStart := 70
@@ -25,13 +25,13 @@ For index, _ in options {
     AttachDropDownEvent(dropDown, index)
 }
 
+
+
 OpenPriorityPicker() {
     PriorityCardSelector.Show()
 }
 
-global priorityOrder := ["new_path", "range", "attack", "health", "shield", "regen", "explosive_death", "cooldown", "speed", "yen"]
-
-priority := []
+global priorityOrder := ["new_path", "range", "attack", "shield", "regen", "cooldown", "explosive_death", "yen", "speed", "health"]
 
 AttachDropDownEvent(dropDown, index) {
     dropDown.OnEvent("Change", (*) => OnDropDownChange(dropDown, index))
@@ -40,17 +40,24 @@ AttachDropDownEvent(dropDown, index) {
 RemoveEmptyStrings(array) {
     for index, value in array {
         if (value = "") {
-            array.RemoveAt(index)
+            array[index] := "placeholder" ; Ensure the array retains 10 elements
         }
     }
 }
 
 OnDropDownChange(ctrl, index) {
-    if (index >= 0 and index <= 10) {
-        priorityOrder[index] := ctrl.Text
+    if (index >= 1 and index <= 10) {
+        priorityOrder[index] := ctrl.Text ; Update the correct index in priorityOrder
         AddToLog(Format("Priority {} set to {}", index, ctrl.Text))
-        RemoveEmptyStrings(priorityOrder)
     } else {
         AddToLog(Format("Invalid index {} for dropdown", index))
     }
 }
+
+
+
+
+
+
+
+
